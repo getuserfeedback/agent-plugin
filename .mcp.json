@@ -1,0 +1,8 @@
+{
+	"mcpServers": {
+		"getuserfeedback.com": {
+			"type": "http",
+			"url": "https://mcp.getuserfeedback.com/"
+		}
+	}
+}

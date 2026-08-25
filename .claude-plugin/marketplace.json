@@ -1,0 +1,27 @@
+{
+	"$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+	"name": "getuserfeedback.com",
+	"description": "Official getuserfeedback.com plugin for bringing user feedback into the agent workflow.",
+	"owner": {
+		"name": "getuserfeedback.com",
+		"url": "https://getuserfeedback.com"
+	},
+	"plugins": [
+		{
+			"name": "getuserfeedback.com",
+			"displayName": "getuserfeedback.com",
+			"source": "./",
+			"description": "Collect product feedback, review responses, and follow up with users through getuserfeedback.com.",
+			"version": "0.1.35",
+			"author": {
+				"name": "getuserfeedback.com",
+				"url": "https://getuserfeedback.com"
+			},
+			"homepage": "https://getuserfeedback.com",
+			"repository": "https://github.com/getuserfeedback/agent-plugin",
+			"license": "Proprietary",
+			"category": "productivity",
+			"tags": ["customer-feedback", "product-feedback", "surveys", "mcp"]
+		}
+	]
+}
