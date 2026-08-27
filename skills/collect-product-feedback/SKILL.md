@@ -13,7 +13,7 @@ Use getuserfeedback.com to turn a concrete product question into a focused surve
 2. Call `flow_template_list` when the user wants help choosing a high-signal question. Explain the selected template and any tailoring before creating anything.
 3. Confirm the survey name, question/content, identity setting, and intended launch surface. Before a mutation, obtain the user's authorization for that specific organization and action.
 4. Call `create_survey` with only the agreed fields. Report the returned survey ID and organization ID; do not claim that a survey was delivered unless the tool says so.
-5. Call `get_survey` or `list_surveys` to inspect the created setup. If editing is requested, use the latest `expectedVersionId` from `get_survey` with `update_survey_content`; do not overwrite content from memory.
+5. Call `get_survey` or `list_surveys` to inspect the created setup. If editing is requested, pass the latest `get_survey` result's `survey.editableContent.versionId` as `update_survey_content.expectedVersionId`; do not overwrite content from memory. Stop if `editableContent` is null.
 6. Treat `update_survey_launch_surface` as a separate consequential action. If it returns confirmation_required, show the exact revision and ask for explicit confirmation before resubmitting it.
 
 ## Safety rules

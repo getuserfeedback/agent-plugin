@@ -1,0 +1,316 @@
+name: Release getuserfeedback.com Agent Plugin
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+# Recovery contract: README.md#release-guarantee-budget
+concurrency:
+  group: getuserfeedback-com-agent-plugin-release-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    if: github.repository == 'getuserfeedback/agent-plugin' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Check out the triggering public commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 1
+
+      - name: Install the pinned Bun runtime
+        uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
+        with:
+          bun-version: 1.3.14
+
+      - name: Materialize and archive the exact Git tree
+        id: archive
+        shell: bash
+        run: |
+          set -euo pipefail
+          metadata="$(bun release-planner-cli.ts artifacts --manifest plugin.json)"
+          version="$(bun -e 'const value = JSON.parse(process.argv[1]); console.log(value.version)' "$metadata")"
+          release_name="$(bun -e 'const value = JSON.parse(process.argv[1]); console.log(value.releaseName)' "$metadata")"
+          tag="$(bun -e 'const value = JSON.parse(process.argv[1]); console.log(value.tagName)' "$metadata")"
+          archive="$(bun -e 'const value = JSON.parse(process.argv[1]); console.log(value.archiveName)' "$metadata")"
+          checksum="$(bun -e 'const value = JSON.parse(process.argv[1]); console.log(value.checksumName)' "$metadata")"
+          stage="$RUNNER_TEMP/plugin-release-tree"
+          rm -rf "$stage"
+          mkdir -p "$stage"
+          git read-tree --reset -u "$GITHUB_SHA"
+          git checkout-index --all --prefix="$stage/getuserfeedback.com/"
+          if find "$stage/getuserfeedback.com" -type l -print -quit | grep -q .; then
+            echo "Symlinks are not supported in the byte-stable public archive."
+            exit 1
+          fi
+          find "$stage/getuserfeedback.com" -exec touch -d '1980-01-01 00:00:00 UTC' {} +
+          (cd "$stage" && find getuserfeedback.com -type f -print0 | sort -z) > "$RUNNER_TEMP/archive-files"
+          mapfile -d '' files < "$RUNNER_TEMP/archive-files"
+          [ "${#files[@]}" -gt 0 ] || { echo "The public plugin tree is empty."; exit 1; }
+          (cd "$stage" && zip -X -q "$RUNNER_TEMP/$archive" "${files[@]}")
+          (cd "$RUNNER_TEMP" && sha256sum "$archive" > "$checksum")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "release_name=$release_name" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "archive=$RUNNER_TEMP/$archive" >> "$GITHUB_OUTPUT"
+          echo "checksum=$RUNNER_TEMP/$checksum" >> "$GITHUB_OUTPUT"
+
+      - name: Reconcile the one public release authority
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_COMMIT: ${{ github.sha }}
+          VERSION: ${{ steps.archive.outputs.version }}
+          RELEASE_NAME: ${{ steps.archive.outputs.release_name }}
+          TAG: ${{ steps.archive.outputs.tag }}
+          ARCHIVE: ${{ steps.archive.outputs.archive }}
+          CHECKSUM: ${{ steps.archive.outputs.checksum }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          state_file="$RUNNER_TEMP/release-state.json"
+
+          observe_release() {
+            gh api --paginate --slurp "repos/$GITHUB_REPOSITORY/releases?per_page=100" > "$RUNNER_TEMP/release-pages.json"
+            if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" > /dev/null 2> "$RUNNER_TEMP/tag-ref-error"; then
+              gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq .sha > "$RUNNER_TEMP/tag-target.txt"
+              tag_target="$(tr -d '\r\n' < "$RUNNER_TEMP/tag-target.txt")"
+            elif grep -q 'HTTP 404' "$RUNNER_TEMP/tag-ref-error"; then
+              tag_target="null"
+            else
+              cat "$RUNNER_TEMP/tag-ref-error"
+              return 1
+            fi
+            bun release-planner-cli.ts observe \
+              --releases-file "$RUNNER_TEMP/release-pages.json" --tag "$TAG" \
+              --tag-target-commit "$tag_target" > "$state_file"
+          }
+
+          observe_expected_release() {
+            local expected_release_id="$1"
+            for _ in {1..10}; do
+              observe_release
+              if [ "$(release_id_from_state 2>/dev/null || true)" = "$expected_release_id" ]; then
+                return 0
+              fi
+              sleep 1
+            done
+            echo "Release $expected_release_id did not become observable in time."
+            return 1
+          }
+
+          wait_for_plan_action() {
+            local expected_release_id="$1"
+            local expected_action="$2"
+            local output="$3"
+            local observed_action
+            local plan_error="$output.error"
+            shift 3
+            for _ in {1..10}; do
+              observe_expected_release "$expected_release_id"
+              if plan_release "$output" --expected-release-id "$expected_release_id" "$@" 2> "$plan_error"; then
+                observed_action="$(bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).action)' "$output")"
+                if [ "$observed_action" = "$expected_action" ]; then
+                  return 0
+                fi
+              fi
+              sleep 1
+            done
+            [ ! -s "$plan_error" ] || cat "$plan_error"
+            echo "Release $expected_release_id did not reach $expected_action in time."
+            return 1
+          }
+
+          upload_names_from_plan() {
+            bun -e 'const p=JSON.parse(await Bun.file(process.argv[1]).text()); console.log(JSON.stringify([...p.uploadAssetNames].sort()))' "$1"
+          }
+
+          delete_ids_from_plan() {
+            bun -e 'const p=JSON.parse(await Bun.file(process.argv[1]).text()); console.log(JSON.stringify([...(p.deleteAssetIds ?? [])].sort((a, b) => a - b)))' "$1"
+          }
+
+          wait_for_reconcile_assets() {
+            local expected_release_id="$1"
+            local expected_plan="$2"
+            local output="$3"
+            local expected_names
+            local observed_action
+            local observed_delete_ids
+            local observed_names
+            local plan_error="$output.error"
+            expected_names="$(upload_names_from_plan "$expected_plan")"
+            for _ in {1..10}; do
+              observe_expected_release "$expected_release_id"
+              if plan_release "$output" --expected-release-id "$expected_release_id" 2> "$plan_error"; then
+                observed_action="$(bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).action)' "$output")"
+                if [ "$observed_action" = "reconcile-draft" ]; then
+                  observed_names="$(upload_names_from_plan "$output")"
+                  observed_delete_ids="$(delete_ids_from_plan "$output")"
+                  if [ "$observed_names" = "$expected_names" ] && [ "$observed_delete_ids" = "[]" ]; then
+                    return 0
+                  fi
+                fi
+              fi
+              sleep 1
+            done
+            [ ! -s "$plan_error" ] || cat "$plan_error"
+            echo "Release $expected_release_id did not expose the complete missing-asset set with deleted IDs absent in time."
+            return 1
+          }
+
+          release_id_from_state() {
+            bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).release.id)' "$state_file"
+          }
+
+          asset_id_from_state() {
+            bun -e 'const s=JSON.parse(await Bun.file(process.argv[1]).text()); const a=(s.release?.assets ?? []).find((x) => x.name === process.argv[2]); if (!a) process.exit(1); console.log(a.id)' "$state_file" "$1"
+          }
+
+          upload_url_from_state() {
+            bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).release.upload_url)' "$state_file"
+          }
+
+          upload_asset() {
+            local path="$1"
+            local base_url
+            base_url="$(upload_url_from_state)"
+            base_url="${base_url%%\{*}"
+            curl --fail-with-body --silent --show-error --location \
+              -X POST -H "Authorization: Bearer $GH_TOKEN" \
+              -H "Content-Type: application/octet-stream" \
+              --data-binary "@$path" \
+              "$base_url?name=$(basename "$path")" > /dev/null
+          }
+
+          download_asset() {
+            local name="$1"
+            local destination="$2"
+            local asset_id
+            asset_id="$(asset_id_from_state "$name")"
+            gh api -H 'Accept: application/octet-stream' \
+              "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > "$destination"
+          }
+
+          delete_asset() {
+            local asset_id="$1"
+            gh api --method DELETE "repos/$GITHUB_REPOSITORY/releases/assets/$asset_id" > /dev/null
+          }
+
+          plan_release() {
+            local output="$1"
+            shift
+            bun release-planner-cli.ts plan \
+              --release-file "$state_file" --version "$VERSION" \
+              --target-commit "$TARGET_COMMIT" "$@" > "$output"
+          }
+
+          upload_plan_assets() {
+            local plan_file="$1"
+            local names_file="$RUNNER_TEMP/upload-asset-names"
+            bun -e 'for (const name of JSON.parse(await Bun.file(process.argv[1]).text()).uploadAssetNames) console.log(name)' "$plan_file" > "$names_file"
+            while IFS= read -r asset_name; do
+              case "$asset_name" in
+                "$(basename "$ARCHIVE")") upload_asset "$ARCHIVE" ;;
+                "$(basename "$CHECKSUM")") upload_asset "$CHECKSUM" ;;
+                *) echo "Planner returned an unknown asset: $asset_name"; return 1 ;;
+              esac
+            done < "$names_file"
+          }
+
+          delete_plan_assets() {
+            local plan_file="$1"
+            local ids_file="$RUNNER_TEMP/delete-asset-ids"
+            bun -e 'for (const id of JSON.parse(await Bun.file(process.argv[1]).text()).deleteAssetIds) console.log(id)' "$plan_file" > "$ids_file"
+            while IFS= read -r asset_id; do
+              delete_asset "$asset_id"
+            done < "$ids_file"
+          }
+
+          verify_assets() {
+            local destination="$1"
+            rm -rf "$destination"
+            mkdir -p "$destination"
+            download_asset "$(basename "$ARCHIVE")" "$destination/$(basename "$ARCHIVE")" || return 2
+            download_asset "$(basename "$CHECKSUM")" "$destination/$(basename "$CHECKSUM")" || return 2
+            cmp "$ARCHIVE" "$destination/$(basename "$ARCHIVE")" || return 1
+            cmp "$CHECKSUM" "$destination/$(basename "$CHECKSUM")" || return 1
+            (cd "$destination" && sha256sum -c "$(basename "$CHECKSUM")") || return 1
+          }
+
+          observe_release
+          plan_release "$RUNNER_TEMP/initial-plan.json"
+          action="$(bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).action)' "$RUNNER_TEMP/initial-plan.json")"
+          if [ "$action" = "create-draft" ]; then
+            created_json="$RUNNER_TEMP/created-release.json"
+            gh api --method POST "repos/$GITHUB_REPOSITORY/releases" \
+              -f "tag_name=$TAG" -f "target_commitish=$TARGET_COMMIT" -f "name=$RELEASE_NAME" \
+              -F draft=true -F prerelease=false > "$created_json"
+            expected_release_id="$(bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).id)' "$created_json")"
+            wait_for_plan_action "$expected_release_id" "reconcile-draft" "$RUNNER_TEMP/create-plan.json"
+            action="$(bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).action)' "$RUNNER_TEMP/create-plan.json")"
+          else
+            expected_release_id="$(release_id_from_state)"
+          fi
+
+          if [ "$action" = "reconcile-draft" ]; then
+            observe_expected_release "$expected_release_id"
+            plan_release "$RUNNER_TEMP/recheck-plan.json" --expected-release-id "$expected_release_id"
+            recheck_action="$(bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).action)' "$RUNNER_TEMP/recheck-plan.json")"
+            [ "$recheck_action" = "reconcile-draft" ] || [ "$recheck_action" = "verify-draft" ] || { echo "Release changed while reconciling."; exit 1; }
+            if [ "$recheck_action" = "reconcile-draft" ]; then
+              delete_plan_assets "$RUNNER_TEMP/recheck-plan.json"
+              wait_for_reconcile_assets "$expected_release_id" "$RUNNER_TEMP/recheck-plan.json" "$RUNNER_TEMP/upload-plan.json"
+              upload_plan_assets "$RUNNER_TEMP/upload-plan.json"
+              wait_for_plan_action "$expected_release_id" "verify-draft" "$RUNNER_TEMP/post-upload-plan.json"
+            fi
+          fi
+
+          observe_expected_release "$expected_release_id"
+          verify_status=0
+          verify_assets "$RUNNER_TEMP/release-verify" || verify_status=$?
+          if [ "$verify_status" -eq 2 ]; then
+            echo "GitHub asset download failed; rerun this failed workflow run at its original commit."
+            exit 1
+          elif [ "$verify_status" -ne 0 ]; then
+            observe_expected_release "$expected_release_id"
+            plan_release "$RUNNER_TEMP/repair-plan.json" \
+              --expected-release-id "$expected_release_id" \
+              --mismatched-asset "$(basename "$ARCHIVE")" \
+              --mismatched-asset "$(basename "$CHECKSUM")"
+            repair_action="$(bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).action)' "$RUNNER_TEMP/repair-plan.json")"
+            [ "$repair_action" = "reconcile-draft" ] || { echo "Only a matching draft may be repaired."; exit 1; }
+            delete_plan_assets "$RUNNER_TEMP/repair-plan.json"
+            wait_for_reconcile_assets "$expected_release_id" "$RUNNER_TEMP/repair-plan.json" "$RUNNER_TEMP/repair-upload-plan.json"
+            upload_plan_assets "$RUNNER_TEMP/repair-upload-plan.json"
+            wait_for_plan_action "$expected_release_id" "verify-draft" "$RUNNER_TEMP/post-repair-plan.json"
+            verify_assets "$RUNNER_TEMP/release-verify-repaired"
+          fi
+
+          observe_expected_release "$expected_release_id"
+          plan_release "$RUNNER_TEMP/verified-plan.json" --expected-release-id "$expected_release_id" --assets-verified
+          verified_action="$(bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).action)' "$RUNNER_TEMP/verified-plan.json")"
+          if [ "$verified_action" = "publish-draft" ]; then
+            release_id="$expected_release_id"
+            observe_expected_release "$expected_release_id"
+            plan_release "$RUNNER_TEMP/publish-guard.json" --expected-release-id "$expected_release_id" --assets-verified
+            [ "$(bun -e 'console.log(JSON.parse(await Bun.file(process.argv[1]).text()).action)' "$RUNNER_TEMP/publish-guard.json")" = "publish-draft" ] || { echo "Release changed before publication."; exit 1; }
+            verify_assets "$RUNNER_TEMP/release-pre-publish"
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/releases/$release_id" \
+              -F draft=false -F prerelease=false -f make_latest=legacy > /dev/null
+            wait_for_plan_action "$expected_release_id" "accept-published" "$RUNNER_TEMP/post-publish-plan.json" --assets-verified
+          elif [ "$verified_action" != "accept-published" ]; then
+            echo "Release did not reach a verified draft or published state."
+            exit 1
+          fi
+
+          verify_assets "$RUNNER_TEMP/release-terminal"
+          terminal_plan="$(bun release-planner-cli.ts plan \
+            --release-file "$state_file" --version "$VERSION" \
+            --target-commit "$TARGET_COMMIT" --expected-release-id "$expected_release_id" \
+            --assets-verified)"
+          [ "$(bun -e 'console.log(JSON.parse(process.argv[1]).action)' "$terminal_plan")" = "accept-published" ] || { echo "Terminal verification did not produce a stable published release."; exit 1; }
