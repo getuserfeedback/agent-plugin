@@ -1,6 +1,6 @@
 {
 	"name": "getuserfeedback.com",
 	"displayName": "getuserfeedback.com",
-	"version": "0.1.40",
+	"version": "0.1.41",
 	"description": "User feedback as a signal your agent reads: set up the ask, read what comes back, fold it in with the rest. Not a separate dashboard."
 }
