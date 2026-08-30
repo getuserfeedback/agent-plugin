@@ -24,6 +24,11 @@ The plugin connects to `https://mcp.getuserfeedback.com/` over Streamable HTTP.
 Authentication uses the client's OAuth flow; the plugin contains no credentials
 or fixed authorization headers.
 
+## License
+
+This plugin is distributed under the MIT License. See [LICENSE](./LICENSE) for
+the standard license text and copyright notice.
+
 ## Included skills
 
 - `collect-product-feedback` creates and safely updates focused surveys.
