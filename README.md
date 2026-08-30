@@ -7,21 +7,139 @@ up with users.
 
 ## Install
 
-Clients that support Agent Plugins can install or clone this public repository:
+Use the route for your client. The public product name is always
+`getuserfeedback.com`; `getuserfeedback` is the shared technical slug used by
+plugin hosts and may appear in install commands or namespaces. Agent Plugins
+standardizes the package, but each client still owns installation and
+authentication.
+
+Repository: <https://github.com/getuserfeedback/agent-plugin>
+
+### Claude Code
+
+Add the repository as a marketplace, then install the shared technical slug:
+
+```text
+/plugin marketplace add getuserfeedback/agent-plugin
+/plugin install getuserfeedback@getuserfeedback
+```
+
+See the [Claude Code plugin guide](https://code.claude.com/docs/en/discover-plugins).
+
+### VS Code
+
+Open the Command Palette, run **Chat: Install Plugin From Source**, and enter:
 
 ```text
 https://github.com/getuserfeedback/agent-plugin
 ```
 
-For Claude Code:
+See [Agent plugins in VS Code](https://code.visualstudio.com/docs/agent-customization/agent-plugins).
 
-```text
-/plugin marketplace add getuserfeedback/agent-plugin
-/plugin install getuserfeedback.com@getuserfeedback.com
+### GitHub Copilot CLI
+
+Install directly from GitHub:
+
+```sh
+copilot plugin install getuserfeedback/agent-plugin
 ```
 
+See the [Copilot CLI plugin reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference).
+
+### Kiro
+
+Open **Powers** → **Add Custom Power** → **Import power from GitHub**, enter
+the repository URL, and choose **Install**. See [Install powers](https://kiro.dev/docs/powers/installation/).
+
+### Cursor
+
+Cursor supports this as a local import. Clone or copy the repository to
+`~/.cursor/plugins/local/getuserfeedback`, then restart Cursor or run
+**Developer: Reload Window**. See [Test plugins locally](https://cursor.com/docs/plugins).
+
+On Cursor Teams or Enterprise, an administrator must first enable **Allow Local
+Plugin Imports** under **Dashboard** → **Settings** → **Security & Identity** →
+**Marketplace and Plugins**. The setting is off by default on Enterprise.
+
+```sh
+mkdir -p "$HOME/.cursor/plugins/local"
+git clone https://github.com/getuserfeedback/agent-plugin "$HOME/.cursor/plugins/local/getuserfeedback"
+```
+
+### ChatGPT and Codex
+
+Add the repository as a marketplace:
+
+```sh
+codex plugin marketplace add getuserfeedback/agent-plugin
+```
+
+In Codex CLI, enter `/plugins`, choose the `getuserfeedback.com` marketplace,
+install the plugin, and start a new session.
+
+In the ChatGPT desktop app, restart the app after adding the marketplace, open
+the Plugins Directory, choose the `getuserfeedback.com` marketplace, and
+install the plugin. Each user completes OAuth for their own getuserfeedback.com
+account; the package contains the registered MCP app identifier, not user
+credentials.
+
+See [OpenAI's plugin packaging guide](https://developers.openai.com/plugins/build/plugins)
+and the [Codex CLI plugin browser](https://learn.chatgpt.com/docs/plugins#plugin-browser-in-codex-cli).
+
+### Grok
+
+Install from GitHub, trust the plugin's skills and MCP configuration, then
+enable it:
+
+```sh
+grok plugin install getuserfeedback/agent-plugin --trust
+grok plugin enable getuserfeedback
+```
+
+Start a new session after installation. See the [Grok plugin guide](https://github.com/xai-org/grok-build/blob/main/crates/codegen/xai-grok-pager/docs/user-guide/09-plugins.md).
+
+### Current authentication gaps
+
+Hermes, OpenClaw, and NanoClaw can load the package, but cannot currently
+complete the OAuth flow required by the hosted getuserfeedback.com MCP server
+from this package's metadata. The skills may appear, but the MCP tools will not
+be usable. These are not full installation paths yet.
+
+Hermes does not currently expose portable MCP servers to its OAuth login
+command. The affected package flow is:
+
+```sh
+hermes plugins install getuserfeedback/agent-plugin --no-enable
+hermes plugins enable getuserfeedback
+```
+
+Track the [Hermes portable OAuth issue](https://github.com/NousResearch/hermes-agent/issues/87253).
+
+For OpenClaw, the bundle can be installed from a local checkout, but its native
+`auth: "oauth"` setting is not part of the portable package:
+
+```sh
+git clone https://github.com/getuserfeedback/agent-plugin ./getuserfeedback-agent-plugin
+openclaw plugins install ./getuserfeedback-agent-plugin
+openclaw plugins inspect getuserfeedback
+```
+
+See the [OpenClaw bundle guide](https://docs.openclaw.ai/plugins/bundles) and
+[native MCP OAuth guide](https://github.com/openclaw/openclaw/blob/main/docs/cli/mcp.md).
+
+NanoClaw accepts Agent Plugins only from its local templates directory. Its
+credentials proxy does not provide the MCP OAuth flow required here:
+
+```sh
+git clone https://github.com/getuserfeedback/agent-plugin /path/to/nanoclaw/templates/getuserfeedback
+ncl groups create --template getuserfeedback --name "getuserfeedback.com"
+```
+
+See NanoClaw's [agent template guide](https://github.com/nanocoai/nanoclaw/blob/main/docs/templates.md).
+
 The plugin connects to `https://mcp.getuserfeedback.com/` over Streamable HTTP.
-Authentication uses the client's OAuth flow; the plugin contains no credentials
+On clients that support OAuth for plugin-declared HTTP MCP servers,
+authentication uses the client's OAuth flow. The plugin contains no credentials
 or fixed authorization headers.
 
 ## License
@@ -36,10 +154,9 @@ the standard license text and copyright notice.
 - `follow-up-with-users` drafts and sends approved respondent follow-ups.
 
 The package includes native Claude Code metadata alongside the portable Agent
-Plugins v1 manifest. Claude Code and Claude Desktop accept the exact dotted
-identifier `getuserfeedback.com`; claude.ai organization marketplace sync
-currently requires kebab-case identifiers and cannot ingest this exact-name
-entry.
+Plugins v1 manifest. Every variant uses `getuserfeedback` as its technical slug
+and presents `getuserfeedback.com` as the product name wherever the host
+supports separate display metadata.
 
 For help, see [getuserfeedback.com support](https://www.getuserfeedback.com/docs/guides/troubleshooting).
 

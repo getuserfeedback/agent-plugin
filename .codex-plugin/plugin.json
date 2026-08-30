@@ -1,0 +1,39 @@
+{
+	"name": "getuserfeedback",
+	"version": "0.1.47",
+	"description": "User feedback as a signal your agent reads: set up the ask, read what comes back, fold it in with the rest. Not a separate dashboard.",
+	"author": {
+		"name": "getuserfeedback.com",
+		"url": "https://getuserfeedback.com"
+	},
+	"homepage": "https://getuserfeedback.com",
+	"repository": "https://github.com/getuserfeedback/agent-plugin",
+	"license": "MIT",
+	"keywords": [
+		"getuserfeedback.com",
+		"user-feedback",
+		"customer-feedback",
+		"product-feedback",
+		"surveys",
+		"mcp",
+		"agent-skills"
+	],
+	"skills": "./skills/",
+	"apps": "./.app.json",
+	"interface": {
+		"displayName": "getuserfeedback.com",
+		"shortDescription": "Bring user feedback into your agent workflow.",
+		"longDescription": "Create and improve surveys, review responses and inbox activity, and follow up with users through the authenticated getuserfeedback.com connection.",
+		"developerName": "getuserfeedback.com",
+		"category": "Productivity",
+		"capabilities": ["Read", "Write"],
+		"websiteURL": "https://getuserfeedback.com",
+		"privacyPolicyURL": "https://www.getuserfeedback.com/privacy",
+		"termsOfServiceURL": "https://www.getuserfeedback.com/terms",
+		"defaultPrompt": [
+			"What have my users been saying lately?",
+			"Create a short survey about my latest product launch.",
+			"Show me the feedback that needs a follow-up."
+		]
+	}
+}

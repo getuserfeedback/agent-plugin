@@ -110,7 +110,7 @@ if (import.meta.main) {
 			name?: string;
 			version?: string;
 		};
-		if (manifest.name !== "getuserfeedback.com" || !manifest.version) {
+		if (manifest.name !== "getuserfeedback" || !manifest.version) {
 			throw new Error(
 				"Manifest is not the canonical getuserfeedback.com plugin",
 			);
