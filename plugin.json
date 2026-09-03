@@ -1,7 +1,7 @@
 {
 	"$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
 	"name": "getuserfeedback",
-	"version": "0.1.48",
+	"version": "0.1.49",
 	"description": "User feedback as a signal your agent reads: set up the ask, read what comes back, fold it in with the rest. Not a separate dashboard.",
 	"homepage": "https://getuserfeedback.com",
 	"repository": "https://github.com/getuserfeedback/agent-plugin",
