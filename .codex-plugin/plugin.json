@@ -1,6 +1,6 @@
 {
 	"name": "getuserfeedback",
-	"version": "0.1.63",
+	"version": "0.1.64",
 	"description": "User feedback as a signal your agent reads: set up the ask, read what comes back, fold it in with the rest. Not a separate dashboard.",
 	"author": {
 		"name": "getuserfeedback.com",
