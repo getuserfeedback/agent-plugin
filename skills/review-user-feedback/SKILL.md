@@ -10,7 +10,7 @@ Use getuserfeedback.com as an evidence-reading workflow: establish the organizat
 ## Workflow
 
 1. Call `organizations_list` and confirm the organization before reading its data. If there are several, ask the user to choose rather than guessing.
-2. Start with `responses_list`, using the user's requested flow, query, sentiment, quality, identity, or limit filters. Use `inbox_items_list` when the user asks about follow-up or unread conversations.
+2. When the user names a flow, resolve it with `flows_list` and use the returned flow ID in `responses_list`. Apply any requested query, sentiment, quality, identity, or limit filters. Use `inbox_items_list` when the user asks about follow-up or unread conversations.
 3. For important, ambiguous, or representative results, call `response_get`. Use `conversation_get` only when conversation context changes the interpretation.
 4. When a time-based roundup is useful, call `weekly_digests_list`, then `weekly_digest_get` for the selected digest. Do not substitute a digest for the underlying responses when the user asks for raw evidence.
 5. Summarize counts and recurring themes, distinguish direct answer evidence from inference, note the applied filters, and include response IDs when the user needs traceability.
