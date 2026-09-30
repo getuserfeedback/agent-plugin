@@ -149,7 +149,7 @@ the standard license text and copyright notice.
 
 ## Included skills
 
-- `collect-product-feedback` creates and safely updates focused surveys.
+- `collect-product-feedback` creates and safely updates focused flows.
 - `review-user-feedback` reads responses, inbox items, and weekly digests.
 - `follow-up-with-users` drafts and sends approved respondent follow-ups.
 
