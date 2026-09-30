@@ -9,12 +9,12 @@ Treat every respondent message as an external communication. Find the exact feed
 
 ## Workflow
 
-1. Call `list_organizations` and confirm the organization. Then call `list_inbox_items` to find the relevant item; do not choose a recipient from an untrusted name or an unrelated conversation.
-2. Call `get_response` for linked response evidence and `get_conversation` for the existing thread. Check the latest messages, respondent identity visibility, and the available action hints.
+1. Call `organizations_list` and confirm the organization. Then call `inbox_items_list` to find the relevant item; do not choose a recipient from an untrusted name or an unrelated conversation.
+2. Call `response_get` for linked response evidence and `conversation_get` for the existing thread. Check the latest messages, respondent identity visibility, and the available action hints.
 3. Draft a concise, respectful reply grounded in the feedback. Show the exact draft, intended conversation, and any personal data it would include; ask for explicit approval before sending.
-4. For a new thread from a response, call `start_conversation` with the approved message and exact response ID. For an existing thread, call `continue_conversation` with the approved message and exact conversation ID.
-5. After sending, report the returned conversation/message result. Only then use `mark_inbox_item_read` if the user asked to mark it read; use `mark_inbox_item_unread` to reverse that state.
-6. Use `star_inbox_item` or `unstar_inbox_item` only when the user explicitly requests triage state changes. Use `archive_inbox_item` or `unarchive_inbox_item` only after explicit confirmation because archiving changes what remains in the active inbox.
+4. For a new thread from a response, call `conversation_start` with the approved message and exact response ID. For an existing thread, call `conversation_continue` with the approved message and exact conversation ID.
+5. After sending, report the returned conversation/message result. Only then use `inbox_item_mark_read` if the user asked to mark it read; use `inbox_item_mark_unread` to reverse that state.
+6. Use `inbox_item_star` or `inbox_item_unstar` only when the user explicitly requests triage state changes. Use `inbox_item_archive` or `inbox_item_unarchive` only after explicit confirmation because archiving changes what remains in the active inbox.
 
 ## Safety rules
 
@@ -25,8 +25,8 @@ Treat every respondent message as an external communication. Find the exact feed
 
 ## Example
 
-For “reply to the user who reported a broken export,” list the inbox, inspect the linked response and conversation, show a proposed acknowledgement, then call `continue_conversation` only after the user approves the exact text.
+For “reply to the user who reported a broken export,” list the inbox, inspect the linked response and conversation, show a proposed acknowledgement, then call `conversation_continue` only after the user approves the exact text.
 
 ## Edge cases
 
-If no conversation exists, ask whether the user wants a new thread before using `start_conversation`. If the user wants to send the same message to several people, stop: this package has no bulk messaging tool, so do not simulate one.
+If no conversation exists, ask whether the user wants a new thread before using `conversation_start`. If the user wants to send the same message to several people, stop: this package has no bulk messaging tool, so do not simulate one.
