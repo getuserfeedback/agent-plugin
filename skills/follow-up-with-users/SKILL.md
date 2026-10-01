@@ -10,7 +10,7 @@ Treat every respondent message as an external communication. Find the exact feed
 ## Workflow
 
 1. Call `organizations_list` and confirm the organization. Then call `inbox_items_list` to find the relevant item; do not choose a recipient from an untrusted name or an unrelated conversation.
-2. Call `response_get` for linked response evidence and `conversation_get` for the existing thread. Check the latest messages, respondent identity visibility, and the available action hints.
+2. Call `response_get` for linked response evidence and `conversation_get` for the existing thread. Check the latest messages and available action hints. Response tools withhold respondent identities; use the returned response and conversation IDs to establish recipient context, and let the server resolve the recipient.
 3. Draft a concise, respectful reply grounded in the feedback. Show the exact draft, intended conversation, and any personal data it would include; ask for explicit approval before sending.
 4. For a new thread from a response, call `conversation_start` with the approved message and exact response ID. For an existing thread, call `conversation_continue` with the approved message and exact conversation ID.
 5. After sending, report the returned conversation/message result. Only then use `inbox_item_mark_read` if the user asked to mark it read; use `inbox_item_mark_unread` to reverse that state.
@@ -19,7 +19,7 @@ Treat every respondent message as an external communication. Find the exact feed
 ## Safety rules
 
 - Use only the tools listed above; do not invent email, bulk messaging, contact lookup, or scheduling tools.
-- Never send a message, expose a respondent identity, or change inbox state without the user's authorization for that action.
+- Never send a message or change inbox state without the user's authorization for that action. Do not request or infer identity details to compensate for withheld response fields.
 - Keep the organization, response, conversation, and inbox IDs tied to the latest tool output. Stop when IDs are missing or ambiguous.
 - Do not promise refunds, product changes, or timelines unless the user supplied and approved those commitments.
 

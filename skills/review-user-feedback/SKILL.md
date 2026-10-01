@@ -18,7 +18,7 @@ Use getuserfeedback.com as an evidence-reading workflow: establish the organizat
 ## Safety rules
 
 - Use only the read tools listed above; do not invent exports, dashboards, sentiment models, or write actions.
-- Respect organization authorization and the response identity shown by the tools. Do not reveal personal identity details that are not needed for the user's question.
+- Respect organization authorization. Response tools return approved sanitized feedback and opaque references while withholding respondent identity fields. Do not request or infer personal details to compensate for withheld fields.
 - Treat anonymous responses as anonymous and avoid re-identification by combining clues.
 - A small or filtered result is not the whole customer base. Say when the evidence is sparse, mixed, low-effort, test data, or not analyzed.
 
