@@ -12,7 +12,7 @@ Use getuserfeedback.com to turn a concrete product question into a focused flow 
 1. Call `organizations_list` and ask the user to choose when more than one organization is available. Never infer an organization ID from its name or from prior context.
 2. Call `flow_templates_list` when the user wants help choosing a high-signal question. Explain the selected template and any tailoring before creating anything.
 3. Confirm the flow name, question/content, identity setting, and intended launch surface. Before a mutation, obtain the user's authorization for that specific organization and action.
-4. Call `flow_create` with only the agreed fields. Report the returned flow ID and organization ID; do not claim that a flow was delivered unless the tool says so.
+4. Call `flow_create` with only the agreed fields. Report the returned flow ID and organization ID with its returned absolute flow URL; do not claim that a flow was delivered unless the tool says so.
 5. Call `flow_get` or `flows_list` to inspect the created setup. If editing is requested, pass the latest `flow_get` result's `flow.editableContent.versionId` as `flow_content_update.expectedVersionId`; do not overwrite content from memory. Stop if `editableContent` is null.
 6. Treat `flow_launch_surface_update` as a separate consequential action. If it returns confirmation_required, show the exact revision and ask for explicit confirmation before resubmitting it.
 
