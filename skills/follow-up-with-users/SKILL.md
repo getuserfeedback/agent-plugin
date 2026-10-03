@@ -9,7 +9,7 @@ Treat every respondent message as an external communication. Find the exact feed
 
 ## Workflow
 
-1. Call `organizations_list` and confirm the organization. Then call `inbox_items_list` to find the relevant item; do not choose a recipient from an untrusted name or an unrelated conversation.
+1. Call `organizations_list` and confirm the organization. Then call `inbox_items_list` to find the relevant item; it defaults to 10 items. Follow `nextCursor` with the same organization and status until the item is found or the cursor is null before claiming it is absent. If you stop early, report a partial search. Do not choose a recipient from an untrusted name or an unrelated conversation.
 2. Call `response_get` for linked response evidence and `conversation_get` for the existing thread. Check the latest messages and available action hints. Response tools withhold respondent identities; use returned response and conversation URLs when available to link to evidence, and let the server resolve the recipient from the approved response/conversation context.
 3. Draft a concise, respectful reply grounded in the feedback. Show the exact draft, intended conversation, and any personal data it would include; ask for explicit approval before sending.
 4. For a new thread from a response, call `conversation_start` with the approved message and exact response ID. For an existing thread, call `conversation_continue` with the approved message and exact conversation ID.
