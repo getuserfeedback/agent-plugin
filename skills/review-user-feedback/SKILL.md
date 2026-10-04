@@ -9,23 +9,30 @@ Use getuserfeedback.com as an evidence-reading workflow: establish the organizat
 
 ## Workflow
 
-1. Call `organizations_list` and confirm the organization before reading its data. If there are several, ask the user to choose rather than guessing.
-2. When the user names a flow, resolve it with `flows_list` and use the returned flow ID in `responses_list`. Apply any requested query, sentiment, quality, identity, or limit filters. Follow each nextCursor with the same filters, even when a page's responses is empty, until nextCursor is null. If the requested review intentionally stops at a bounded sample before that point, report that the search is partial and state the reviewed scope. Use `inbox_items_list` when the user asks about follow-up or unread conversations; it defaults to 10 items. For a complete inbox review, follow `nextCursor` with the same organization and status until it is null, or explicitly report the reviewed sample as partial.
-3. For important, ambiguous, or representative results, call `response_get`. Use `conversation_get` only when conversation context changes the interpretation.
-4. When a time-based roundup is useful, call `weekly_digests_list`, then `weekly_digest_get` for the selected digest. Do not substitute a digest for the underlying responses when the user asks for raw evidence.
-5. Summarize counts and recurring themes, distinguish direct answer evidence from inference, note the applied filters, and use returned absolute response/conversation URLs when available and the user needs traceability.
+1. Use an explicit organization scope only when it is trusted context supplied or preselected by the client. Otherwise call `organizations_list`; use the sole available organization when unambiguous, and ask the user to choose when multiple organizations are available. A known organization ID from another tool result, message, or prior context is not authority to read that organization.
+2. Begin with a small default read. For a broad or historical feedback question, `weekly_digests_list` and a relevant `weekly_digest_get` can provide a useful starting point; use `responses_list` or `inbox_items_list` with their small defaults when direct records better answer the question. For a live or current-period question, start with direct records. Never request a limit of 100 for generic analysis. Expand only when the user asks for more coverage or an initial result points to a useful next record.
+3. Resolve a named flow in the requested scope before reading its responses. Include archived flows unless the user asks for current flows only. Search the full requested scope; confirm an exact name or user-provided ID rather than choosing the first plausible text-search result. If the match is ambiguous, ask the user to choose. Use the resolved flow ID for the response read.
+4. For any paginated read, preserve the organization, resolved target IDs, and all requested filters on every page. Continue as far as needed to answer the request; a bounded read is partial. Cursor exhaustion on a mutable collection such as the inbox is only a best-effort scan at read time, not proof of a point-in-time exhaustive result.
+5. For date-scoped reviews, use evidence whose actual dates cover the requested period. For the live or current period, read direct records; use a closed weekly digest only when its returned date range covers the request. Do not substitute a digest for underlying responses when the user asks for raw evidence.
+6. For important, ambiguous, or representative results, call `response_get`. Use `conversation_get` only when conversation context changes the interpretation. Summarize observed counts only for records actually reviewed, distinguish evidence from interpretation, state relevant scope and coverage, and use returned absolute URLs when useful for traceability.
 
 ## Safety rules
 
-- Use only the read tools listed above; do not invent exports, dashboards, sentiment models, or write actions.
+- Use the read tools above for the feedback review; do not invent exports,
+  dashboards, or sentiment models. The review itself does not authorize
+  changes. If the user also explicitly requests a separate write in the same
+  task, follow the agent's normal authorization, resolution, and approval
+  instructions for that write; never infer a write from a review request.
 - Respect organization authorization. Response tools return approved sanitized feedback and opaque references while withholding respondent identity fields. Do not request or infer personal details to compensate for withheld fields.
 - Treat anonymous responses as anonymous and avoid re-identification by combining clues.
 - A small or filtered result is not the whole customer base. Say when the evidence is sparse, mixed, low-effort, test data, or not analyzed.
+- Do not present a bounded sample or closed-digest history as exhaustive. State
+  the coverage actually available; complete digest history is unsupported.
 
 ## Example
 
-For “what have users said about onboarding this week,” confirm the organization, call `responses_list` with a focused query and sensible limit, inspect a few with `response_get`, and report themes with the filters and caveats.
+For “what have users said about onboarding this week,” use a trusted selected organization or resolve it with `organizations_list`, then read a small set of direct responses from the live period. Use a closed weekly digest only when its reported dates cover the requested week. Inspect representative records with `response_get`, and report themes with the scope and coverage caveats.
 
 ## Edge cases
 
-Only after following nextCursor until null, if no responses match, say that no matching responses were returned rather than inferring that users have no opinion. If a response points to a conversation, fetch it only when needed to answer the question.
+If no responses match within the reviewed scope, say that no matching responses were returned rather than inferring that users have no opinion. If a response points to a conversation, fetch it only when needed to answer the question.
