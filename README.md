@@ -150,13 +150,11 @@ the standard license text and copyright notice.
 ## Included skills
 
 - `collect-product-feedback` creates and safely updates focused flows.
-- `organization-overview` gives a bounded assessment of feedback setup or activity.
 - `review-user-feedback` reads responses, inbox items, and weekly digests.
 - `follow-up-with-users` drafts and sends approved respondent follow-ups.
 
-The canonical `organization-overview` and `review-user-feedback` skills also
-power the first-party product agent; its copies are synced from this directory
-before the Eve build.
+The canonical `review-user-feedback` skill also powers the first-party product
+agent; its copy is synced from this directory before the Eve build.
 
 The package includes native Claude Code metadata alongside the portable Agent
 Plugins v1 manifest. Every variant uses `getuserfeedback` as its technical slug

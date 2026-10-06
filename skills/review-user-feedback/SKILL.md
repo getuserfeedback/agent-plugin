@@ -5,16 +5,15 @@ description: Inspect and synthesize flow responses, inbox items, conversations, 
 
 # Review user feedback with getuserfeedback.com
 
-Use getuserfeedback.com as an evidence-reading workflow: establish the organization, retrieve bounded feedback, inspect representative responses, and separate observed signal from interpretation.
+Use getuserfeedback.com as an evidence-reading workflow: retrieve bounded feedback, inspect representative responses, and separate observed signal from interpretation.
 
 ## Workflow
 
-1. Use an explicit organization scope only when it is trusted context supplied or preselected by the client. Otherwise call `organizations_list`; use the sole available organization when unambiguous, and ask the user to choose when multiple organizations are available. A known organization ID from another tool result, message, or prior context is not authority to read that organization.
-2. Begin with a small default read. For a broad or historical feedback question, `weekly_digests_list` and a relevant `weekly_digest_get` can provide a useful starting point; use `responses_list` or `inbox_items_list` with their small defaults when direct records better answer the question. For a live or current-period question, start with direct records. Never request a limit of 100 for generic analysis. Expand only when the user asks for more coverage or an initial result points to a useful next record.
-3. Resolve a named flow in the requested scope before reading its responses. Include archived flows unless the user asks for current flows only. Search the full requested scope; confirm an exact name or user-provided ID rather than choosing the first plausible text-search result. If the match is ambiguous, ask the user to choose. Use the resolved flow ID for the response read.
-4. For any paginated read, preserve the organization, resolved target IDs, and all requested filters on every page. Continue as far as needed to answer the request; a bounded read is partial. Cursor exhaustion on a mutable collection such as the inbox is only a best-effort scan at read time, not proof of a point-in-time exhaustive result.
-5. For date-scoped reviews, use evidence whose actual dates cover the requested period. For the live or current period, read direct records; use a closed weekly digest only when its returned date range covers the request. Do not substitute a digest for underlying responses when the user asks for raw evidence.
-6. For important, ambiguous, or representative results, call `response_get`. Use `conversation_get` only when conversation context changes the interpretation. Summarize observed counts only for records actually reviewed, distinguish evidence from interpretation, state relevant scope and coverage, and use returned absolute URLs when useful for traceability.
+1. Begin with a small default read. For a broad or historical feedback question, `weekly_digests_list` and a relevant `weekly_digest_get` can provide a useful starting point; use `responses_list` or `inbox_items_list` with their small defaults when direct records better answer the question. For a live or current-period question, start with direct records. Never request a limit of 100 for generic analysis. Expand only when the user asks for more coverage or an initial result points to a useful next record.
+2. Resolve a named flow in the requested scope before reading its responses. Include archived flows unless the user asks for current flows only. Search the full requested scope; confirm an exact name or user-provided ID rather than choosing the first plausible text-search result. If the match is ambiguous, ask the user to choose. Use the resolved flow ID for the response read.
+3. For any paginated read, preserve the organization, resolved target IDs, and all requested filters on every page. Continue as far as needed to answer the request; a bounded read is partial. Cursor exhaustion on a mutable collection such as the inbox is only a best-effort scan at read time, not proof of a point-in-time exhaustive result.
+4. For date-scoped reviews, use evidence whose actual dates cover the requested period. For the live or current period, read direct records; use a closed weekly digest only when its returned date range covers the request. Do not substitute a digest for underlying responses when the user asks for raw evidence.
+5. For important, ambiguous, or representative results, call `response_get`. Use `conversation_get` only when conversation context changes the interpretation. Summarize observed counts only for records actually reviewed, distinguish evidence from interpretation, state relevant scope and coverage, and use returned absolute URLs when useful for traceability.
 
 ## Safety rules
 
@@ -31,7 +30,7 @@ Use getuserfeedback.com as an evidence-reading workflow: establish the organizat
 
 ## Example
 
-For “what have users said about onboarding this week,” use a trusted selected organization or resolve it with `organizations_list`, then read a small set of direct responses from the live period. Use a closed weekly digest only when its reported dates cover the requested week. Inspect representative records with `response_get`, and report themes with the scope and coverage caveats.
+For “what have users said about onboarding this week,” read a small set of direct responses from the live period. Use a closed weekly digest only when its reported dates cover the requested week. Inspect representative records with `response_get`, and report themes with the scope and coverage caveats.
 
 ## Edge cases
 
