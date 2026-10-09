@@ -6,9 +6,9 @@ description: Inspect getuserfeedback.com Responses, conversations, or weekly dig
 # Review user feedback
 
 `responses_list` provides compact analysis; `response_get` provides approved
-answer content and linked conversations. Query matching uses sanitized answer
-content within each bounded candidate page, rather than searching all stored
-fields. Dedicated contact fields and withheld answers are excluded.
+answer content and linked conversations. Query matching verifies sanitized
+answer content permitted for the model and fills pages with matching responses.
+Dedicated contact fields and withheld answers are excluded.
 
 Weekly digests cover the returned closed periods; they do not cover the live
 period. `weekly_digests_list` exposes the available recent digest history.
