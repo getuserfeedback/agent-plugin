@@ -1,7 +1,7 @@
 {
 	"$schema": "https://json.schemastore.org/claude-code-marketplace.json",
 	"name": "getuserfeedback",
-	"description": "Official getuserfeedback.com plugin for bringing user feedback into the agent workflow.",
+	"description": "Official plugin for getuserfeedback.com, an in-app survey tool for SaaS teams.",
 	"owner": {
 		"name": "getuserfeedback.com",
 		"url": "https://getuserfeedback.com"
@@ -11,8 +11,8 @@
 			"name": "getuserfeedback",
 			"displayName": "getuserfeedback.com",
 			"source": "./",
-			"description": "Create and improve feedback flows, review responses, and follow up with users through getuserfeedback.com.",
-			"version": "0.1.136",
+			"description": "getuserfeedback.com is an in-app survey tool for SaaS teams. Create and improve flows and review responses from your agent.",
+			"version": "0.1.137",
 			"author": {
 				"name": "getuserfeedback.com",
 				"url": "https://getuserfeedback.com"

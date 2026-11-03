@@ -2,8 +2,7 @@
 
 The official getuserfeedback.com Agent Plugin brings product feedback into the
 agent workflow. It connects to the hosted getuserfeedback.com MCP server and
-adds focused skills for collecting feedback, reviewing responses, and following
-up with users.
+adds focused skills for collecting feedback and reviewing responses.
 
 ## Install
 
@@ -150,8 +149,7 @@ the standard license text and copyright notice.
 ## Included skills
 
 - `collect-product-feedback` creates and safely updates focused flows.
-- `review-user-feedback` reads responses, inbox items, and weekly digests.
-- `follow-up-with-users` drafts and sends approved respondent follow-ups.
+- `review-user-feedback` reads responses and explains what users said.
 
 The canonical `review-user-feedback` skill also powers the first-party product
 agent; its copy is synced from this directory before the Eve build.

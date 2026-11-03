@@ -1,7 +1,7 @@
 {
 	"name": "getuserfeedback",
-	"version": "0.1.136",
-	"description": "User feedback as a signal your agent reads: set up the ask, read what comes back, fold it in with the rest. Not a separate dashboard.",
+	"version": "0.1.137",
+	"description": "In-app surveys for SaaS teams. Your AI assistant sets up the ask, takes it live, and tells you what users said.",
 	"author": {
 		"name": "getuserfeedback.com",
 		"url": "https://getuserfeedback.com"
@@ -22,8 +22,8 @@
 	"apps": "./.app.json",
 	"interface": {
 		"displayName": "getuserfeedback.com",
-		"shortDescription": "Bring user feedback into your agent workflow.",
-		"longDescription": "Create and improve flows, review responses and inbox activity, and follow up with users through the authenticated getuserfeedback.com connection.",
+		"shortDescription": "In-app surveys for SaaS teams",
+		"longDescription": "getuserfeedback.com is an in-app survey tool for SaaS teams. Create and improve flows, choose who sees them and when, and review responses through your getuserfeedback.com account.",
 		"developerName": "getuserfeedback.com",
 		"category": "Productivity",
 		"capabilities": ["Read", "Write"],
@@ -33,7 +33,7 @@
 		"defaultPrompt": [
 			"What have my users been saying lately?",
 			"Create a short flow about my latest product launch.",
-			"Show me the feedback that needs a follow-up."
+			"Show me the feedback that needs attention."
 		]
 	}
 }

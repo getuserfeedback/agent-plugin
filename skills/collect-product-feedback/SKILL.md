@@ -10,23 +10,24 @@ a short Flow rather than turning setup into a questionnaire for the user.
 Ask about one thing at a time, use neutral wording, and keep the effort
 proportionate to the question. Prefer a concrete recent experience over a
 hypothetical prediction. A low rating can identify a problem without explaining
-its cause; an open question can help uncover what to investigate next.
+its cause. An open question can help uncover what to investigate next.
 Keep wording and scales consistent when comparing results over time. Consider
 who can see the Flow and when they see it: an in-app question cannot reach
 people who never return. Avoid collecting personal information the question
 does not need.
 
 When improving an existing Flow, preserve questions and settings unrelated to
-the requested change. Distinguish a draft or saved edit from a Flow that is live
-and collecting responses. Explain the chosen delivery surface and audience
-without assuming they are already configured.
+the requested change. Edits to a live Flow take effect immediately, so say so
+before changing one. Saving a Flow's first delivery rule makes it live. Explain
+the chosen delivery surface and audience without assuming they are already
+configured.
 
 `flow_templates_list` returns actionable template IDs. `flow_create` accepts
-either a template or custom pages, not both. Flow content is page-first; the
+either a template or custom pages, not both. Flow content is page-first. The
 schema and editing semantics are at `getuserfeedback://docs/flow-content`.
 
 `flow_get.flow.editableContent` is the safe editing projection. Its `versionId`
-is the revision required by `flow_content_update`; null means the content is
+is the revision required by `flow_content_update`. Null means the content is
 unavailable for editing through MCP. `currentVersion` is a read projection and
 may contain omissions.
 
