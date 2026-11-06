@@ -27,7 +27,7 @@ the model and fills pages with matching responses. Dedicated contact fields and
 withheld answers are excluded.
 
 `user_get` opens a User by `userReference`. Responses return the same
-`userReference` when a current profile is available. References are scoped to the organization and may change
+`userReference` when a current profile is available. References are scoped to the workspace and may change
 after identity deletion or reset. Stored identity, attributes, and dynamic
 event properties are withheld from the model. The User UI can show separately
 delivered sensitive context, marked with a padlock.
