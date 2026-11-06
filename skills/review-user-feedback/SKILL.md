@@ -26,8 +26,8 @@ answer content. Query matching verifies sanitized answer content permitted for
 the model and fills pages with matching responses. Dedicated contact fields and
 withheld answers are excluded.
 
-`user_get` opens the current User behind a Response's opaque
-`respondentReference`. References are scoped to the organization and may change
+`user_get` opens a User by `userReference`. Responses return the same
+`userReference` when a current profile is available. References are scoped to the organization and may change
 after identity deletion or reset. Stored identity, attributes, and dynamic
 event properties are withheld from the model. The User UI can show separately
 delivered sensitive context, marked with a padlock.
