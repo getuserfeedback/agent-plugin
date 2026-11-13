@@ -23,8 +23,9 @@ the chosen delivery surface and audience without assuming they are already
 configured.
 
 `flow_templates_list` returns actionable template IDs. `flow_create` accepts
-either a template or custom pages, not both. Flow content is page-first. The
-schema and editing semantics are at `getuserfeedback://docs/flow-content`.
+either a template or custom `questions` with optional conditional `groups`, not
+both. Omit both for the starter question. The schema and editing semantics are
+at `getuserfeedback://docs/flow-content`.
 
 `flow_get.flow.editableContent` is the safe editing projection. Its `versionId`
 is the revision required by `flow_content_update`. Null means the content is
