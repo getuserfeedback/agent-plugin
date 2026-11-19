@@ -27,11 +27,6 @@ either a template or custom `questions` with optional conditional `groups`, not
 both. Omit both for the starter question. The schema and editing semantics are
 at `getuserfeedback://docs/flow-content`.
 
-`flow_get.flow.editableContent` is the safe editing projection. Its `versionId`
-is the revision required by `flow_content_update`. Null means the content is
-unavailable for editing through MCP. `currentVersion` is a read projection and
-may contain omissions.
-
 Launch surface, delivery rule, and live window are distinct settings.
 `flow_get` exposes them through `launchPlan`, `flowSchedule`, and
 `deliveryRuleAuthoring`. Delivery-rule edits replace the complete rule and use
